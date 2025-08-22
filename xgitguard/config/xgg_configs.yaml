@@ -173,3 +173,7 @@ keywords:
       "Day",
       "Hour",
     ]
+
+repository_filtering:
+  exclude_archived_default: false
+  exclude_forked_default: false
