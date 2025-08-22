@@ -519,7 +519,7 @@ def format_search_query_list(secondary_keywords):
 
 
 def run_detection(
-    secondary_keywords=[], extensions=[], ml_prediction=False, org=[], repo=[]
+    secondary_keywords=[], extensions=[], ml_prediction=False, org=[], repo=[], exclude_archived=False, exclude_forks=False
 ):
     """
     Run GitHub detections
@@ -625,7 +625,7 @@ def run_detection(
                 # Search GitHub and return search response confidence_score
                 total_processed_search += 1
                 search_response_lines = githubCalls.run_github_search(
-                    search_query, extension, org, repo
+                    search_query, extension, org, repo, exclude_archived, exclude_forks
                 )
                 # If search has detections, process the result urls else continue next search
                 if search_response_lines:
@@ -784,6 +784,20 @@ def arg_parser():
         help="Pass the Console Logging as Yes or No. Default is Yes",
     )
 
+    argparser.add_argument(
+        "--exclude-archived",
+        action="store_true",
+        default=False,
+        help="Exclude archived repositories from search results",
+    )
+
+    argparser.add_argument(
+        "--exclude-forks",
+        action="store_true",
+        default=False,
+        help="Exclude forked repositories from search results",
+    )
+
     args = argparser.parse_args()
 
     if args.secondary_keywords:
@@ -837,6 +851,8 @@ def arg_parser():
         repo,
         log_level,
         console_logging,
+        args.exclude_archived,
+        args.exclude_forks,
     )
 
 
@@ -851,6 +867,8 @@ if __name__ == "__main__":
         repo,
         log_level,
         console_logging,
+        exclude_archived,
+        exclude_forks,
     ) = arg_parser()
 
     # Setting up Logger
@@ -876,6 +894,6 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    run_detection(secondary_keywords, extensions, ml_prediction, org, repo)
+    run_detection(secondary_keywords, extensions, ml_prediction, org, repo, exclude_archived, exclude_forks)
 
     logger.info("xGitGuard Enterprise Keys and Token Detection Process Completed")
