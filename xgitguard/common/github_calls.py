@@ -38,7 +38,7 @@ class GithubCalls:
         self._commits_api_url = commits_api_url
         self._throttle_time = throttle_time
 
-    def run_github_search(self, search_query, extension, org=[], repo=[]):
+    def run_github_search(self, search_query, extension, org=[], repo=[], exclude_archived=False, exclude_forks=False):
         """
         Run the GitHub API search with given search query
         Get the items from the response content and Return
@@ -73,7 +73,7 @@ class GithubCalls:
 
         if not extension or extension == "others" or len(extension) == 0:
             response = self.__github_api_get_params(
-                search_query, org_qualifiers, repo_qualifiers
+                search_query, org_qualifiers, repo_qualifiers, exclude_archived, exclude_forks
             )
         elif self._token_env == "public":
 
@@ -81,12 +81,16 @@ class GithubCalls:
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
+                exclude_archived,
+                exclude_forks,
             )
         else:
             response = self.__github_api_get_params(
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
+                exclude_archived,
+                exclude_forks,
             )
 
         if response:
@@ -95,7 +99,7 @@ class GithubCalls:
         return []
 
     def __github_api_get_params(
-        self, search_query, org_qualifiers="", repo_qualifiers=""
+        self, search_query, org_qualifiers="", repo_qualifiers="", exclude_archived=False, exclude_forks=False
     ):
         """
         For the given GITHUB API url and search query, call the api
@@ -131,36 +135,35 @@ class GithubCalls:
             additional_qualifiers = org_qualifiers
         elif len(repo_qualifiers) > 0:
             additional_qualifiers = repo_qualifiers
+        
+        # Add filtering qualifiers
+        filter_qualifiers = ""
+        if exclude_archived:
+            filter_qualifiers += " -is:archived"
+        if exclude_forks:
+            filter_qualifiers += " -is:fork"
 
         search_response = []
+        # Construct final query with all qualifiers
+        final_query = search_query
         if additional_qualifiers:
-            try:
-                response = requests.get(
-                    self._base_url,
-                    params={
-                        "q": f"{search_query} {additional_qualifiers}",
-                        "order": "desc",
-                        "sort": "indexed",
-                        "per_page": 100,
-                    },
-                    auth=("token", os.getenv(token_var)),
-                )
-            except Exception as e:
-                logger.error(f"Github API call Error: {e}")
-        else:
-            try:
-                response = requests.get(
-                    self._base_url,
-                    params={
-                        "q": f"{search_query}",
-                        "order": "desc",
-                        "sort": "indexed",
-                        "per_page": 100,
-                    },
-                    auth=("token", os.getenv(token_var)),
-                )
-            except Exception as e:
-                logger.error(f"Github API call Error: {e}")
+            final_query += f" {additional_qualifiers}"
+        if filter_qualifiers:
+            final_query += filter_qualifiers
+        
+        try:
+            response = requests.get(
+                self._base_url,
+                params={
+                    "q": final_query,
+                    "order": "desc",
+                    "sort": "indexed",
+                    "per_page": 100,
+                },
+                auth=("token", os.getenv(token_var)),
+            )
+        except Exception as e:
+            logger.error(f"Github API call Error: {e}")
 
         if response.status_code == 200:
             content = response.json()
