@@ -561,6 +561,10 @@ def run_data_collector(primary_keyword="", secondary_keywords=[], extensions=[])
                 search_response_lines = githubCalls.run_github_search(
                     search_query,
                     extension,
+                    [],
+                    [],
+                    exclude_archived,
+                    exclude_forks,
                 )
                 # If search has detections, process the result urls else continue next search
                 if search_response_lines:
@@ -598,7 +602,7 @@ def run_data_collector(primary_keyword="", secondary_keywords=[], extensions=[])
     return True
 
 
-def run_data_collector_from_file(secondary_keywords=[], extensions=[]):
+def run_data_collector_from_file(secondary_keywords=[], extensions=[], exclude_archived=False, exclude_forks=False):
     """
     Run detection for Primary Keywords present in the default config file
     params: secondary_keywords - list - optional
@@ -620,7 +624,7 @@ def run_data_collector_from_file(secondary_keywords=[], extensions=[]):
                         f"Running GitHub Detection for Primary Keyword: {primary_keyword}"
                     )
                     status = run_data_collector(
-                        primary_keyword, secondary_keywords, extensions
+                        primary_keyword, secondary_keywords, extensions, exclude_archived, exclude_forks
                     )
                     status = True
                 except Exception as e:
@@ -645,7 +649,7 @@ def run_data_collector_from_file(secondary_keywords=[], extensions=[]):
 
 
 def run_data_collector_from_list(
-    primary_keywords, secondary_keywords=[], extensions=[]
+    primary_keywords, secondary_keywords=[], extensions=[], exclude_archived=False, exclude_forks=False
 ):
     """
     Run detection for Primary Keywords present in the given input list
@@ -685,7 +689,7 @@ def run_data_collector_from_list(
                         f"Running GitHub Detections for Primary Keyword: {primary_keyword}"
                     )
                     status = run_data_collector(
-                        primary_keyword, secondary_keywords, extensions
+                        primary_keyword, secondary_keywords, extensions, exclude_archived, exclude_forks
                     )
                 except Exception as e:
                     logger.error(f"Process Error: {e}")
@@ -788,6 +792,20 @@ def arg_parser():
         help="Pass the Console Logging as Yes or No. Default is Yes",
     )
 
+    argparser.add_argument(
+        "--exclude-archived",
+        action="store_true",
+        default=False,
+        help="Exclude archived repositories from search"
+    )
+
+    argparser.add_argument(
+        "--exclude-forks", 
+        action="store_true",
+        default=False,
+        help="Exclude forked repositories from search"
+    )
+
     args = argparser.parse_args()
 
     if args.primary_keywords:
@@ -818,6 +836,8 @@ def arg_parser():
         extensions,
         log_level,
         console_logging,
+        args.exclude_archived,
+        args.exclude_forks,
     )
 
 
@@ -829,6 +849,8 @@ if __name__ == "__main__":
         extensions,
         log_level,
         console_logging,
+        exclude_archived,
+        exclude_forks,
     ) = arg_parser()
 
     # Setting up Logger
@@ -852,8 +874,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if primary_keywords:
-        run_data_collector_from_list(primary_keywords, secondary_keywords, extensions)
+        run_data_collector_from_list(primary_keywords, secondary_keywords, extensions, exclude_archived, exclude_forks)
     else:
-        run_data_collector_from_file(secondary_keywords, extensions)
+        run_data_collector_from_file(secondary_keywords, extensions, exclude_archived, exclude_forks)
 
     logger.info("xGitGuard Public Credentials Data Collection Process Completed")

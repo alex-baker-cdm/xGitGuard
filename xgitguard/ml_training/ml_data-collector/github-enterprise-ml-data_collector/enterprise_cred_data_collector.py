@@ -461,7 +461,7 @@ def format_search_query_list(secondary_keywords):
     return search_query_list
 
 
-def run_data_collector(secondary_keywords=[], extensions=[]):
+def run_data_collector(secondary_keywords=[], extensions=[], exclude_archived=False, exclude_forks=False):
     """
     Run GitHub detections
     Run search with Secondary Keywords and extension combination
@@ -542,6 +542,10 @@ def run_data_collector(secondary_keywords=[], extensions=[]):
                 search_response_lines = githubCalls.run_github_search(
                     search_query,
                     extension,
+                    [],
+                    [],
+                    exclude_archived,
+                    exclude_forks,
                 )
                 # If search has detections, process the result urls else continue next search
                 if search_response_lines:
@@ -648,6 +652,20 @@ def arg_parser():
         help="Pass the Console Logging as Yes or No. Default is Yes",
     )
 
+    argparser.add_argument(
+        "--exclude-archived",
+        action="store_true",
+        default=False,
+        help="Exclude archived repositories from search"
+    )
+
+    argparser.add_argument(
+        "--exclude-forks", 
+        action="store_true",
+        default=False,
+        help="Exclude forked repositories from search"
+    )
+
     args = argparser.parse_args()
 
     if args.secondary_keywords:
@@ -668,7 +686,7 @@ def arg_parser():
     else:
         console_logging = False
 
-    return secondary_keywords, extensions, log_level, console_logging
+    return secondary_keywords, extensions, log_level, console_logging, args.exclude_archived, args.exclude_forks
 
 
 if __name__ == "__main__":
@@ -678,6 +696,8 @@ if __name__ == "__main__":
         extensions,
         log_level,
         console_logging,
+        exclude_archived,
+        exclude_forks,
     ) = arg_parser()
 
     # Setting up Logger
@@ -699,6 +719,6 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    run_data_collector(secondary_keywords, extensions)
+    run_data_collector(secondary_keywords, extensions, exclude_archived, exclude_forks)
 
     logger.info("xGitGuard Enterprise Credentials Data Collection Process Completed")

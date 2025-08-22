@@ -38,7 +38,7 @@ class GithubCalls:
         self._commits_api_url = commits_api_url
         self._throttle_time = throttle_time
 
-    def run_github_search(self, search_query, extension, org=[], repo=[]):
+    def run_github_search(self, search_query, extension, org=[], repo=[], exclude_archived=False, exclude_forks=False):
         """
         Run the GitHub API search with given search query
         Get the items from the response content and Return
@@ -73,7 +73,7 @@ class GithubCalls:
 
         if not extension or extension == "others" or len(extension) == 0:
             response = self.__github_api_get_params(
-                search_query, org_qualifiers, repo_qualifiers
+                search_query, org_qualifiers, repo_qualifiers, exclude_archived, exclude_forks
             )
         elif self._token_env == "public":
 
@@ -81,12 +81,16 @@ class GithubCalls:
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
+                exclude_archived,
+                exclude_forks,
             )
         else:
             response = self.__github_api_get_params(
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
+                exclude_archived,
+                exclude_forks,
             )
 
         if response:
@@ -95,7 +99,7 @@ class GithubCalls:
         return []
 
     def __github_api_get_params(
-        self, search_query, org_qualifiers="", repo_qualifiers=""
+        self, search_query, org_qualifiers="", repo_qualifiers="", exclude_archived=False, exclude_forks=False
     ):
         """
         For the given GITHUB API url and search query, call the api
@@ -126,11 +130,19 @@ class GithubCalls:
             )
             sys.exit(1)
 
+        repo_type_qualifiers = ""
+        if exclude_archived:
+            repo_type_qualifiers += " archived:false"
+        if exclude_forks:
+            repo_type_qualifiers += " fork:false"
+
         additional_qualifiers = ""
         if len(org_qualifiers) > 0:
-            additional_qualifiers = org_qualifiers
+            additional_qualifiers = org_qualifiers + repo_type_qualifiers
         elif len(repo_qualifiers) > 0:
-            additional_qualifiers = repo_qualifiers
+            additional_qualifiers = repo_qualifiers + repo_type_qualifiers
+        else:
+            additional_qualifiers = repo_type_qualifiers.strip()
 
         search_response = []
         if additional_qualifiers:
