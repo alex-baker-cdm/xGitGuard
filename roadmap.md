@@ -32,7 +32,7 @@ While a feature may not be listed here, it doesn't imply automatic refusal of a 
 ### ML Integration ---> [GitHub Issues](https://github.com/Comcast/xGitGuard/issues/32)
 | Feature                          | Description                                      | Status    | Developer (GitHub ID)        |
 |----------------------------------|--------------------------------------------------|-----------|------------------------------|
-| 🤖 Training ML models using BERT  | Train models for secret detection using BERT    | 🚧 To Do  | [](https://github.com/developer8) |
+| 🤖 Training ML models using BERT  | Train models for secret detection using BERT    | ✅ Done  | [alex-baker-cdm](https://github.com/alex-baker-cdm) |
 | 🤖 Integrating BERT into scanners | Integrate BERT model into xGitGuard scanner     | 🚧 To Do  | [](https://github.com/developer9) |
 
 ---
@@ -48,9 +48,9 @@ While a feature may not be listed here, it doesn't imply automatic refusal of a 
 ### Others
 | Feature                          | Description                                      | Status    | Developer (GitHub ID)        |
 |----------------------------------|--------------------------------------------------|-----------|------------------------------|
-| Custom keyword search          | Search for specific keywords within repositories| 🚧 To Do  | [](https://github.com/developer8) |
-| Filtering archived repositories | Exclude archived repositories from scanning    | 🚧 To Do  | [](https://github.com/developer8) |
-| Filtering forked repositories   | Exclude forked repositories from scanning      | 🚧 To Do  | [](https://github.com/developer8) |
+| Custom keyword search          | Search for specific keywords within repositories| ✅ Done  | [alex-baker-cdm](https://github.com/alex-baker-cdm) |
+| Filtering archived repositories | Exclude archived repositories from scanning    | ✅ Done  | [alex-baker-cdm](https://github.com/alex-baker-cdm) |
+| Filtering forked repositories   | Exclude forked repositories from scanning      | ✅ Done  | [alex-baker-cdm](https://github.com/alex-baker-cdm) |
 
 ---
 
