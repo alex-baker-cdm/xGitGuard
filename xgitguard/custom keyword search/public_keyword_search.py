@@ -221,7 +221,7 @@ def process_search_results(search_response_lines, search_query):
     return detection_writes_per_query, new_results_per_query, detections_per_query
 
 
-def run_detection(public_keywords=[], org=[], repo=[], exclude_archived=False, exclude_forks=False):
+def run_detection(public_keywords=[], org=[], repo=[], filter_archived=False, filter_forks=False):
     """
     Run GitHub search
     If a primary keyword is provided, perform the search using the primary keyword.
@@ -264,8 +264,8 @@ def run_detection(public_keywords=[], org=[], repo=[], exclude_archived=False, e
                 "",
                 org,
                 repo,
-                exclude_archived,
-                exclude_forks,
+                filter_archived,
+                filter_forks,
             )
             # If search has detections, process the result urls else continue next search
             if search_response_lines:
@@ -377,17 +377,17 @@ def arg_parser():
     )
 
     argparser.add_argument(
-        "--exclude-archived",
+        "--filter-archived",
         action="store_true",
         default=False,
-        help="Exclude archived repositories from search results",
+        help="Filter out archived repositories from search results",
     )
 
     argparser.add_argument(
-        "--exclude-forks",
+        "--filter-forks",
         action="store_true",
         default=False,
-        help="Exclude forked repositories from search results",
+        help="Filter out forked repositories from search results",
     )
     args = argparser.parse_args()
     if args.public_keywords:
@@ -419,8 +419,8 @@ def arg_parser():
         repo,
         log_level,
         console_logging,
-        args.exclude_archived,
-        args.exclude_forks,
+        args.filter_archived,
+        args.filter_forks,
     )
 
 
@@ -432,8 +432,8 @@ if __name__ == "__main__":
         repo,
         log_level,
         console_logging,
-        exclude_archived,
-        exclude_forks,
+        filter_archived,
+        filter_forks,
     ) = arg_parser()
 
     # Setting up Logger
@@ -456,5 +456,5 @@ if __name__ == "__main__":
             f"GitHub API Token Environment variable '{token_var}' not set. API Search will fail/return no results. Please Setup and retry"
         )
         sys.exit(1)
-    run_detection(public_keywords, org, repo, exclude_archived, exclude_forks)
+    run_detection(public_keywords, org, repo, filter_archived, filter_forks)
     logger.info("xGitGuard custom keyword search Process  Completed")

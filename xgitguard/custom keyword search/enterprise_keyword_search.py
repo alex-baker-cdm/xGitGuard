@@ -239,7 +239,7 @@ def format_search_query_list(secondary_keywords):
     return search_query_list
 
 
-def run_detection(enterprise_keywords=[], org=[], repo=[], exclude_archived=False, exclude_forks=False):
+def run_detection(enterprise_keywords=[], org=[], repo=[], filter_archived=False, filter_forks=False):
     """
     Run GitHub search
     If a Enterprise keyword is provided, perform the search using the Enterprise keyword.
@@ -286,8 +286,8 @@ def run_detection(enterprise_keywords=[], org=[], repo=[], exclude_archived=Fals
                 "",
                 org,
                 repo,
-                exclude_archived,
-                exclude_forks,
+                filter_archived,
+                filter_forks,
             )
             # If search has detections, process the result urls else continue next search
             if search_response_lines:
@@ -404,17 +404,17 @@ def arg_parser():
     )
 
     argparser.add_argument(
-        "--exclude-archived",
+        "--filter-archived",
         action="store_true",
         default=False,
-        help="Exclude archived repositories from search results",
+        help="Filter out archived repositories from search results",
     )
 
     argparser.add_argument(
-        "--exclude-forks",
+        "--filter-forks",
         action="store_true",
         default=False,
-        help="Exclude forked repositories from search results",
+        help="Filter out forked repositories from search results",
     )
 
     args = argparser.parse_args()
@@ -452,8 +452,8 @@ def arg_parser():
         repo,
         log_level,
         console_logging,
-        args.exclude_archived,
-        args.exclude_forks,
+        args.filter_archived,
+        args.filter_forks,
     )
 
 
@@ -465,8 +465,8 @@ if __name__ == "__main__":
         repo,
         log_level,
         console_logging,
-        exclude_archived,
-        exclude_forks,
+        filter_archived,
+        filter_forks,
     ) = arg_parser()
 
     # Setting up Logger
@@ -490,5 +490,5 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    run_detection(enterprise_keywords, org, repo, exclude_archived, exclude_forks)
+    run_detection(enterprise_keywords, org, repo, filter_archived, filter_forks)
     logger.info("xGitGuard Custom keyword search Process  Completed")
