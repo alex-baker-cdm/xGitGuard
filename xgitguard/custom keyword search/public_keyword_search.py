@@ -221,7 +221,7 @@ def process_search_results(search_response_lines, search_query):
     return detection_writes_per_query, new_results_per_query, detections_per_query
 
 
-def run_detection(public_keywords=[], org=[], repo=[], exclude_archived=False, exclude_forks=False):
+def run_detection(public_keywords=[], org=[], repo=[], filter_archived=False, filter_forks=False):
     """
     Run GitHub search
     If a primary keyword is provided, perform the search using the primary keyword.
@@ -264,8 +264,8 @@ def run_detection(public_keywords=[], org=[], repo=[], exclude_archived=False, e
                 "",
                 org,
                 repo,
-                exclude_archived,
-                exclude_forks,
+                filter_archived,
+                filter_forks,
             )
             # If search has detections, process the result urls else continue next search
             if search_response_lines:
@@ -414,8 +414,8 @@ def arg_parser():
     else:
         console_logging = False
 
-    exclude_archived = args.exclude_archived
-    exclude_forks = args.exclude_forks
+    filter_archived = args.exclude_archived
+    filter_forks = args.exclude_forks
 
     return (
         public_keywords,
@@ -423,8 +423,8 @@ def arg_parser():
         repo,
         log_level,
         console_logging,
-        exclude_archived,
-        exclude_forks,
+        filter_archived,
+        filter_forks,
     )
 
 
@@ -436,8 +436,8 @@ if __name__ == "__main__":
         repo,
         log_level,
         console_logging,
-        exclude_archived,
-        exclude_forks,
+        filter_archived,
+        filter_forks,
     ) = arg_parser()
 
     # Setting up Logger
@@ -460,5 +460,5 @@ if __name__ == "__main__":
             f"GitHub API Token Environment variable '{token_var}' not set. API Search will fail/return no results. Please Setup and retry"
         )
         sys.exit(1)
-    run_detection(public_keywords, org, repo, exclude_archived, exclude_forks)
+    run_detection(public_keywords, org, repo, filter_archived, filter_forks)
     logger.info("xGitGuard custom keyword search Process  Completed")

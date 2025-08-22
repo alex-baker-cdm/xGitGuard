@@ -519,7 +519,7 @@ def format_search_query_list(secondary_keywords):
 
 
 def run_detection(
-    secondary_keywords=[], extensions=[], ml_prediction=False, org=[], repo=[], exclude_archived=False, exclude_forks=False
+    secondary_keywords=[], extensions=[], ml_prediction=False, org=[], repo=[], filter_archived=False, filter_forks=False
 ):
     """
     Run GitHub detections
@@ -625,7 +625,7 @@ def run_detection(
                 # Search GitHub and return search response confidence_score
                 total_processed_search += 1
                 search_response_lines = githubCalls.run_github_search(
-                    search_query, extension, org, repo, exclude_archived, exclude_forks
+                    search_query, extension, org, repo, filter_archived, filter_forks
                 )
                 # If search has detections, process the result urls else continue next search
                 if search_response_lines:
@@ -842,8 +842,8 @@ def arg_parser():
     else:
         console_logging = False
 
-    exclude_archived = args.exclude_archived
-    exclude_forks = args.exclude_forks
+    filter_archived = args.exclude_archived
+    filter_forks = args.exclude_forks
 
     return (
         secondary_keywords,
@@ -854,8 +854,8 @@ def arg_parser():
         repo,
         log_level,
         console_logging,
-        exclude_archived,
-        exclude_forks,
+        filter_archived,
+        filter_forks,
     )
 
 
@@ -870,8 +870,8 @@ if __name__ == "__main__":
         repo,
         log_level,
         console_logging,
-        exclude_archived,
-        exclude_forks,
+        filter_archived,
+        filter_forks,
     ) = arg_parser()
 
     # Setting up Logger
@@ -897,6 +897,6 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    run_detection(secondary_keywords, extensions, ml_prediction, org, repo, exclude_archived, exclude_forks)
+    run_detection(secondary_keywords, extensions, ml_prediction, org, repo, filter_archived, filter_forks)
 
     logger.info("xGitGuard Enterprise Keys and Token Detection Process Completed")

@@ -38,7 +38,7 @@ class GithubCalls:
         self._commits_api_url = commits_api_url
         self._throttle_time = throttle_time
 
-    def run_github_search(self, search_query, extension, org=[], repo=[], exclude_archived=False, exclude_forks=False):
+    def run_github_search(self, search_query, extension, org=[], repo=[], filter_archived=False, filter_forks=False):
         """
         Run the GitHub API search with given search query
         Get the items from the response content and Return
@@ -73,7 +73,7 @@ class GithubCalls:
 
         if not extension or extension == "others" or len(extension) == 0:
             response = self.__github_api_get_params(
-                search_query, org_qualifiers, repo_qualifiers, exclude_archived, exclude_forks
+                search_query, org_qualifiers, repo_qualifiers, filter_archived, filter_forks
             )
         elif self._token_env == "public":
 
@@ -81,16 +81,16 @@ class GithubCalls:
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
-                exclude_archived,
-                exclude_forks,
+                filter_archived,
+                filter_forks,
             )
         else:
             response = self.__github_api_get_params(
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
-                exclude_archived,
-                exclude_forks,
+                filter_archived,
+                filter_forks,
             )
 
         if response:
@@ -99,7 +99,7 @@ class GithubCalls:
         return []
 
     def __github_api_get_params(
-        self, search_query, org_qualifiers="", repo_qualifiers="", exclude_archived=False, exclude_forks=False
+        self, search_query, org_qualifiers="", repo_qualifiers="", filter_archived=False, filter_forks=False
     ):
         """
         For the given GITHUB API url and search query, call the api
@@ -138,9 +138,9 @@ class GithubCalls:
         
         # Add filtering qualifiers
         filter_qualifiers = ""
-        if exclude_archived:
+        if filter_archived:
             filter_qualifiers += " -is:archived"
-        if exclude_forks:
+        if filter_forks:
             filter_qualifiers += " -is:fork"
 
         search_response = []
