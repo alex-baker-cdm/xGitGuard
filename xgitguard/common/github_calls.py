@@ -151,6 +151,7 @@ class GithubCalls:
 
         search_response = []
         if additional_qualifiers:
+            logger.info(f"GitHub API search query: '{search_query} {additional_qualifiers}'")
             try:
                 response = requests.get(
                     self._base_url,
@@ -165,6 +166,7 @@ class GithubCalls:
             except Exception as e:
                 logger.error(f"Github API call Error: {e}")
         else:
+            logger.info(f"GitHub API search query: '{search_query}'")
             try:
                 response = requests.get(
                     self._base_url,
