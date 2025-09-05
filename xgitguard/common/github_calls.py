@@ -38,7 +38,7 @@ class GithubCalls:
         self._commits_api_url = commits_api_url
         self._throttle_time = throttle_time
 
-    def run_github_search(self, search_query, extension, org=[], repo=[]):
+    def run_github_search(self, search_query, extension, org=[], repo=[], exclude_archived=False, exclude_forked=False):
         """
         Run the GitHub API search with given search query
         Get the items from the response content and Return
@@ -73,7 +73,7 @@ class GithubCalls:
 
         if not extension or extension == "others" or len(extension) == 0:
             response = self.__github_api_get_params(
-                search_query, org_qualifiers, repo_qualifiers
+                search_query, org_qualifiers, repo_qualifiers, exclude_archived, exclude_forked
             )
         elif self._token_env == "public":
 
@@ -81,12 +81,16 @@ class GithubCalls:
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
+                exclude_archived,
+                exclude_forked,
             )
         else:
             response = self.__github_api_get_params(
                 (search_query + " extension:" + extension),
                 org_qualifiers,
                 repo_qualifiers,
+                exclude_archived,
+                exclude_forked,
             )
 
         if response:
@@ -95,7 +99,7 @@ class GithubCalls:
         return []
 
     def __github_api_get_params(
-        self, search_query, org_qualifiers="", repo_qualifiers=""
+        self, search_query, org_qualifiers="", repo_qualifiers="", exclude_archived=False, exclude_forked=False
     ):
         """
         For the given GITHUB API url and search query, call the api
@@ -132,13 +136,19 @@ class GithubCalls:
         elif len(repo_qualifiers) > 0:
             additional_qualifiers = repo_qualifiers
 
+        filter_qualifiers = ""
+        if exclude_archived:
+            filter_qualifiers += " archived:false"
+        if exclude_forked:
+            filter_qualifiers += " fork:false"
+
         search_response = []
         if additional_qualifiers:
             try:
                 response = requests.get(
                     self._base_url,
                     params={
-                        "q": f"{search_query} {additional_qualifiers}",
+                        "q": f"{search_query} {additional_qualifiers}{filter_qualifiers}",
                         "order": "desc",
                         "sort": "indexed",
                         "per_page": 100,
@@ -152,7 +162,7 @@ class GithubCalls:
                 response = requests.get(
                     self._base_url,
                     params={
-                        "q": f"{search_query}",
+                        "q": f"{search_query}{filter_qualifiers}",
                         "order": "desc",
                         "sort": "indexed",
                         "per_page": 100,
