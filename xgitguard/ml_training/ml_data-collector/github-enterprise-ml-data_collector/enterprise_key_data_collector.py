@@ -521,6 +521,10 @@ def run_data_collector(secondary_keywords=[], extensions=[]):
                 search_response_lines = githubCalls.run_github_search(
                     search_query,
                     extension,
+                    [],
+                    [],
+                    False,
+                    False,
                 )
                 # If search has detections, process the result urls else continue next search
                 if search_response_lines:
