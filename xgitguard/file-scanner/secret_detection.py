@@ -233,13 +233,14 @@ def format_detection(
         logger.debug("Confidence value process completed")
 
         if confidence_score[1] > 1.5:
-            secret_content = re.escape(secret)
-            secret_lines = re.findall(
-                "^.*" + secret_content + ".*$", code_content, re.MULTILINE
-            )
+            lines = code_content.split("\n")
+            secret_lines_with_numbers = []
+            for i, line in enumerate(lines, 1):  # 1-indexed line numbers
+                if secret in line:
+                    secret_lines_with_numbers.append((line, i))
 
             # code_line = secret
-            for secret_line in secret_lines:
+            for secret_line, line_number in secret_lines_with_numbers:
                 if validate_secret_line(
                     secret_line,
                     secret,
@@ -262,6 +263,7 @@ def format_detection(
                         now = datetime.now()
                         valid_secret_row.extend(
                             [
+                                line_number,
                                 secret,
                                 masked_secret,
                                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

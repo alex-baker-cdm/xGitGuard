@@ -129,6 +129,7 @@ file_scanner:
       "Second_Key",
       "Extension",
       "URL",
+      "Line_Number",
       "Secret",
       "Code",
       "Detected_Timestamp",
