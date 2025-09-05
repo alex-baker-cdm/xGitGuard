@@ -544,6 +544,8 @@ def run_detection(
     ml_prediction=False,
     org=[],
     repo=[],
+    exclude_archived=False,
+    exclude_forked=False,
 ):
     """
     Run GitHub detections
@@ -661,7 +663,7 @@ def run_detection(
                 # Search GitHub and return search response confidence_score
                 total_processed_search += 1
                 search_response_lines = githubCalls.run_github_search(
-                    search_query, extension, org, repo
+                    search_query, extension, org, repo, exclude_archived, exclude_forked
                 )
 
                 # If search has detections, process the result urls else continue next search
@@ -705,7 +707,7 @@ def run_detection(
 
 
 def run_detections_from_file(
-    secondary_keywords=[], extensions=[], ml_prediction=False, org=[], repo=[]
+    secondary_keywords=[], extensions=[], ml_prediction=False, org=[], repo=[], exclude_archived=False, exclude_forked=False
 ):
     """
     Run detection for Primary Keywords present in the default config file
@@ -767,6 +769,8 @@ def run_detections_from_list(
     ml_prediction=False,
     org=[],
     repo=[],
+    exclude_archived=False,
+    exclude_forked=False,
 ):
     """
     Run detection for Primary Keywords present in the given input list
@@ -967,6 +971,25 @@ def arg_parser():
         help="Pass the Console Logging as Yes or No. Default is Yes",
     )
 
+    argparser.add_argument(
+        "--exclude-archived",
+        metavar="Exclude Archived Repos",
+        action="store",
+        type=str,
+        default="No",
+        choices=flag_choices,
+        help="Exclude archived repositories from scanning"
+    )
+    argparser.add_argument(
+        "--exclude-forked", 
+        metavar="Exclude Forked Repos",
+        action="store",
+        type=str,
+        default="No",
+        choices=flag_choices,
+        help="Exclude forked repositories from scanning"
+    )
+
     args = argparser.parse_args()
 
     if args.primary_keywords:
@@ -1015,6 +1038,9 @@ def arg_parser():
     else:
         console_logging = False
 
+    exclude_archived = args.exclude_archived.lower() in flag_choices[:5]
+    exclude_forked = args.exclude_forked.lower() in flag_choices[:5]
+
     return (
         primary_keywords,
         secondary_keywords,
@@ -1025,6 +1051,8 @@ def arg_parser():
         repo,
         log_level,
         console_logging,
+        exclude_archived,
+        exclude_forked,
     )
 
 
@@ -1040,6 +1068,8 @@ if __name__ == "__main__":
         repo,
         log_level,
         console_logging,
+        exclude_archived,
+        exclude_forked,
     ) = arg_parser()
 
     # Setting up Logger
@@ -1069,11 +1099,11 @@ if __name__ == "__main__":
 
     if primary_keywords:
         run_detections_from_list(
-            primary_keywords, secondary_keywords, extensions, ml_prediction, org, repo
+            primary_keywords, secondary_keywords, extensions, ml_prediction, org, repo, exclude_archived, exclude_forked
         )
     else:
         run_detections_from_file(
-            secondary_keywords, extensions, ml_prediction, org, repo
+            secondary_keywords, extensions, ml_prediction, org, repo, exclude_archived, exclude_forked
         )
 
     logger.info("xGitGuard Credentials Detection Process Completed")

@@ -286,6 +286,8 @@ def run_detection(enterprise_keywords=[], org=[], repo=[]):
                 "",
                 org,
                 repo,
+                exclude_archived,
+                exclude_forked,
             )
             # If search has detections, process the result urls else continue next search
             if search_response_lines:
@@ -399,6 +401,25 @@ def arg_parser():
         default="Yes",
         choices=flag_choices,
         help="Pass the Console Logging as Yes or No. Default is Yes",
+    )
+
+    argparser.add_argument(
+        "--exclude-archived",
+        metavar="Exclude Archived Repos",
+        action="store",
+        type=str,
+        default="No",
+        choices=flag_choices,
+        help="Exclude archived repositories from scanning"
+    )
+    argparser.add_argument(
+        "--exclude-forked", 
+        metavar="Exclude Forked Repos",
+        action="store",
+        type=str,
+        default="No",
+        choices=flag_choices,
+        help="Exclude forked repositories from scanning"
     )
 
     args = argparser.parse_args()

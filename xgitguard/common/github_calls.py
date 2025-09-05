@@ -38,7 +38,7 @@ class GithubCalls:
         self._commits_api_url = commits_api_url
         self._throttle_time = throttle_time
 
-    def run_github_search(self, search_query, extension, org=[], repo=[]):
+    def run_github_search(self, search_query, extension, org=[], repo=[], exclude_archived=False, exclude_forked=False):
         """
         Run the GitHub API search with given search query
         Get the items from the response content and Return
@@ -90,7 +90,8 @@ class GithubCalls:
             )
 
         if response:
-            return response
+            filtered_response = self.filter_repositories(response, exclude_archived, exclude_forked)
+            return filtered_response
 
         return []
 
