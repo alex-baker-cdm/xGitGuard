@@ -23,8 +23,11 @@ import time
 
 import requests
 from utilities.query_length_validator import query_length_validator
+from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode
 
 logger = logging.getLogger("xgg_logger")
+tracer = trace.get_tracer(__name__)
 
 
 class GithubCalls:
@@ -48,10 +51,16 @@ class GithubCalls:
         params: repo - list
         returns: search_response - list
         """
-        logger.debug("<<<< 'Current Executing Function' >>>>")
+        with tracer.start_as_current_span("github_search") as span:
+            span.set_attribute("search.query", search_query)
+            span.set_attribute("search.extension", extension)
+            span.set_attribute("search.org_count", len(org))
+            span.set_attribute("search.repo_count", len(repo))
+            
+            logger.debug("<<<< 'Current Executing Function' >>>>")
 
-        org_qualifiers = []
-        repo_qualifiers = []
+            org_qualifiers = []
+            repo_qualifiers = []
 
         if len(org) > 0:
             # Checks if the length of additional qualifiers has exceeded the character limit of 170.
@@ -89,10 +98,14 @@ class GithubCalls:
                 repo_qualifiers,
             )
 
-        if response:
-            return response
+            if response:
+                span.set_attribute("search.results_count", len(response))
+                span.set_status(Status(StatusCode.OK))
+                return response
 
-        return []
+            span.set_attribute("search.results_count", 0)
+            span.set_status(Status(StatusCode.OK))
+            return []
 
     def __github_api_get_params(
         self, search_query, org_qualifiers="", repo_qualifiers=""
@@ -107,92 +120,108 @@ class GithubCalls:
         params: repo_qualifiers - string
         returns: response - dict
         """
-        logger.debug("<<<< 'Current Executing Function' >>>>")
-        if self._token_env == "public":
-            token_var = "GITHUB_TOKEN"
-            time.sleep(self._throttle_time)
-        else:
-            time.sleep(self._throttle_time)
-            token_var = "GITHUB_ENTERPRISE_TOKEN"
-            if "<< Enterprise Name >>" in self._base_url:
+        with tracer.start_as_current_span("github_api_call") as span:
+            span.set_attribute("api.endpoint", self._base_url)
+            span.set_attribute("api.token_env", self._token_env)
+            span.set_attribute("api.search_query", search_query)
+            
+            logger.debug("<<<< 'Current Executing Function' >>>>")
+            if self._token_env == "public":
+                token_var = "GITHUB_TOKEN"
+                time.sleep(self._throttle_time)
+            else:
+                time.sleep(self._throttle_time)
+                token_var = "GITHUB_ENTERPRISE_TOKEN"
+                if "<< Enterprise Name >>" in self._base_url:
+                    logger.error(
+                        f"GitHub API URL not set for Enterprise in xgg_configs.yaml file in config folder. API Search will fail/return no results. Please Setup and retry"
+                    )
+                    span.set_status(Status(StatusCode.ERROR, "Enterprise URL not configured"))
+                    sys.exit(1)
+
+            if not os.getenv(token_var):
                 logger.error(
-                    f"GitHub API URL not set for Enterprise in xgg_configs.yaml file in config folder. API Search will fail/return no results. Please Setup and retry"
+                    f"GitHub API Token Environment variable '{token_var}' not set. API Search will fail/return no results. Please Setup and retry"
                 )
+                span.set_status(Status(StatusCode.ERROR, f"Missing {token_var} environment variable"))
                 sys.exit(1)
 
-        if not os.getenv(token_var):
-            logger.error(
-                f"GitHub API Token Environment variable '{token_var}' not set. API Search will fail/return no results. Please Setup and retry"
-            )
-            sys.exit(1)
-
-        additional_qualifiers = ""
+            additional_qualifiers = ""
         if len(org_qualifiers) > 0:
             additional_qualifiers = org_qualifiers
         elif len(repo_qualifiers) > 0:
             additional_qualifiers = repo_qualifiers
 
-        search_response = []
-        if additional_qualifiers:
-            try:
-                response = requests.get(
-                    self._base_url,
-                    params={
-                        "q": f"{search_query} {additional_qualifiers}",
-                        "order": "desc",
-                        "sort": "indexed",
-                        "per_page": 100,
-                    },
-                    auth=("token", os.getenv(token_var)),
-                )
-            except Exception as e:
-                logger.error(f"Github API call Error: {e}")
-        else:
-            try:
-                response = requests.get(
-                    self._base_url,
-                    params={
-                        "q": f"{search_query}",
-                        "order": "desc",
-                        "sort": "indexed",
-                        "per_page": 100,
-                    },
-                    auth=("token", os.getenv(token_var)),
-                )
-            except Exception as e:
-                logger.error(f"Github API call Error: {e}")
-
-        if response.status_code == 200:
-            content = response.json()
-            search_response.extend(content["items"])
-            try:
-                while "next" in response.links.keys():
-                    time.sleep(6)
+            search_response = []
+            if additional_qualifiers:
+                try:
                     response = requests.get(
-                        response.links["next"]["url"],
+                        self._base_url,
+                        params={
+                            "q": f"{search_query} {additional_qualifiers}",
+                            "order": "desc",
+                            "sort": "indexed",
+                            "per_page": 100,
+                        },
                         auth=("token", os.getenv(token_var)),
                     )
+                except Exception as e:
+                    logger.error(f"Github API call Error: {e}")
+                    span.set_status(Status(StatusCode.ERROR, str(e)))
+            else:
+                try:
+                    response = requests.get(
+                        self._base_url,
+                        params={
+                            "q": f"{search_query}",
+                            "order": "desc",
+                            "sort": "indexed",
+                            "per_page": 100,
+                        },
+                        auth=("token", os.getenv(token_var)),
+                    )
+                except Exception as e:
+                    logger.error(f"Github API call Error: {e}")
+                    span.set_status(Status(StatusCode.ERROR, str(e)))
 
-                    if response.status_code == 200:
-                        content = response.json()
-                        if len(content["items"]) < 1:
-                            break
-                        search_response.extend(content["items"])
-
-                    else:
-                        logger.info(
-                            f"Encountered an error in processing request.Response Status Code:{response.status_code}"
+            if response.status_code == 200:
+                span.set_attribute("http.status_code", response.status_code)
+                content = response.json()
+                search_response.extend(content["items"])
+                try:
+                    while "next" in response.links.keys():
+                        time.sleep(6)
+                        response = requests.get(
+                            response.links["next"]["url"],
+                            auth=("token", os.getenv(token_var)),
                         )
-                        break
-            except Exception as e:
-                logger.error(
-                    f"Error occured while iterating through file contents: {e}"
+
+                        if response.status_code == 200:
+                            content = response.json()
+                            if len(content["items"]) < 1:
+                                break
+                            search_response.extend(content["items"])
+
+                        else:
+                            logger.info(
+                                f"Encountered an error in processing request.Response Status Code:{response.status_code}"
+                            )
+                            break
+                except Exception as e:
+                    logger.error(
+                        f"Error occured while iterating through file contents: {e}"
+                    )
+                    span.set_status(Status(StatusCode.ERROR, str(e)))
+                
+                span.set_attribute("api.total_results", len(search_response))
+                span.set_status(Status(StatusCode.OK))
+            else:
+                span.set_attribute("http.status_code", response.status_code)
+                span.set_status(Status(StatusCode.ERROR, f"HTTP {response.status_code}"))
+                logger.info(
+                    f"Encountered an error in processing request.Response Status Code:{response.status_code}"
                 )
-        else:
-            logger.info(
-                f"Encountered an error in processing request.Response Status Code:{response.status_code}"
-            )
-        return search_response
+            return search_response
 
     def public_url_content_get(self, file_url):
         """

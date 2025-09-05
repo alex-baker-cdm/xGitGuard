@@ -19,6 +19,7 @@ SPDX-License-Identifier: Apache-2.0
 import logging
 import os
 from datetime import datetime
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 
 def create_logger(log_level=20, console_logging=True, log_dir=None, log_file_name=None):
@@ -46,6 +47,8 @@ def create_logger(log_level=20, console_logging=True, log_dir=None, log_file_nam
 
     if console_logging:
         logger.addHandler(set_console_handler(formatter))
+
+    LoggingInstrumentor().instrument(set_logging_format=True)
 
     return logger
 

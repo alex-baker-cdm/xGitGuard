@@ -60,6 +60,10 @@ from datetime import datetime
 import pandas as pd
 from urlextract import URLExtract
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+from telemetry_config import setup_telemetry
+tracer, meter = setup_telemetry()
+
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 parent_dir = os.path.dirname(MODULE_DIR)
