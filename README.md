@@ -61,7 +61,7 @@ Designed and Developed by Comcast Cybersecurity Research and Development Team</p
 
 ### Environment Setup
 
-- Install [Python >= v3.6]
+- Install [Python >= v3.12]
 - Clone/Download the repository from GitHub
 - Traverse into the cloned `xGitGuard` folder
 
@@ -951,7 +951,7 @@ optional arguments:
 
 Licensed under the [Apache 2.0](LICENSE) license.
 
-[python >= v3.6]: https://www.python.org/downloads/
+[python >= v3.12]: https://www.python.org/downloads/release/python-3120/
 [how to get github api token]: https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token
 
 # Contributors
